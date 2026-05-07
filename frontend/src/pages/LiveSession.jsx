@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import api from '../api/client';
+<<<<<<< HEAD
 import { COURSES, CLASSROOMS } from '../data/institutionData';
 
 // ── Starting animation overlay ──────────────────────────────────────────────
@@ -139,6 +140,11 @@ function StartingOverlay({ courseName, classroomName, onComplete }) {
 // ── Main component ───────────────────────────────────────────────────────────
 export default function LiveSession() {
   const [step, setStep] = useState('setup'); // setup | starting | active
+=======
+
+export default function LiveSession() {
+  const [step, setStep] = useState('setup'); // setup | active
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   const [courses, setCourses] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -150,6 +156,7 @@ export default function LiveSession() {
   const [stats, setStats] = useState({ verified: 0, flagged: 0, rejected: 0, total: 0 });
   const [loading, setLoading] = useState(false);
 
+<<<<<<< HEAD
   const seenEventsRef = useRef(new Set());
   const socketRef = useRef(null);
   const navigate = useNavigate();
@@ -174,11 +181,36 @@ export default function LiveSession() {
           const res = await api.get('/demo/classrooms');
           setClassrooms(res.data?.length ? res.data : CLASSROOMS);
         } catch { setClassrooms(CLASSROOMS); }
+=======
+  // Deduplication: track seen events to avoid double-counting
+  const seenEventsRef = useRef(new Set());
+  const socketRef = useRef(null);
+
+  const navigate = useNavigate();
+
+  // Load courses and classrooms
+  useEffect(() => {
+    async function load() {
+      try {
+        let c = await api.get('/dashboard/courses');
+        if (!c) c = await api.get('/demo/courses');
+        setCourses(c || []);
+      } catch {
+        try { setCourses(await api.get('/demo/courses') || []); } catch { /* skip */ }
+      }
+      try {
+        let r = await api.get('/dashboard/classrooms');
+        if (!r) r = await api.get('/demo/classrooms');
+        setClassrooms(r || []);
+      } catch {
+        try { setClassrooms(await api.get('/demo/classrooms') || []); } catch { /* skip */ }
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       }
     }
     load();
   }, []);
 
+<<<<<<< HEAD
   // WebSocket for live events
   useEffect(() => {
     if (step !== 'active' || !session?.id) return;
@@ -187,11 +219,28 @@ export default function LiveSession() {
     socketRef.current = s;
 
     s.on('connect', () => {
+=======
+  // Direct WebSocket connection — activates when session goes live
+  useEffect(() => {
+    if (step !== 'active' || !session?.id) return;
+
+    console.log('[LiveSession] Connecting WebSocket for session:', session.id);
+    const s = io('http://localhost:3000', {
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
+    socketRef.current = s;
+
+    s.on('connect', () => {
+      console.log('[LiveSession] ✅ WebSocket connected:', s.id);
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       s.emit('session:join', session.id);
       s.emit('dashboard:live:join');
     });
 
     s.on('session:student_verified', (data) => {
+<<<<<<< HEAD
       const key = `${data.student?.id}_${data.timestamp}`;
       if (seenEventsRef.current.has(key)) return;
       seenEventsRef.current.add(key);
@@ -206,12 +255,51 @@ export default function LiveSession() {
     s.on('session:ended', () => { setStep('setup'); setSession(null); });
 
     return () => {
+=======
+      console.log('[LiveSession] 📡 Received student_verified:', data);
+      // Deduplicate
+      const eventKey = `${data.student?.id}_${data.timestamp}`;
+      if (seenEventsRef.current.has(eventKey)) {
+        console.log('[LiveSession] Duplicate event, skipping');
+        return;
+      }
+      seenEventsRef.current.add(eventKey);
+      if (seenEventsRef.current.size > 200) {
+        seenEventsRef.current = new Set(Array.from(seenEventsRef.current).slice(-100));
+      }
+
+      setAttendanceFeed(prev => [data, ...prev]);
+      setStats(prev => ({
+        ...prev,
+        [data.status]: (prev[data.status] || 0) + 1,
+        total: prev.total + 1,
+      }));
+    });
+
+    s.on('session:anomaly_flag', (data) => {
+      console.log('[LiveSession] 🚨 Received anomaly_flag:', data);
+      setAnomalyFeed(prev => [data, ...prev]);
+    });
+
+    s.on('session:ended', () => {
+      setStep('setup');
+      setSession(null);
+    });
+
+    s.on('connect_error', (err) => {
+      console.error('[LiveSession] ❌ WebSocket connect error:', err.message);
+    });
+
+    return () => {
+      console.log('[LiveSession] Disconnecting WebSocket');
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       s.emit('session:leave', session.id);
       s.emit('dashboard:live:leave');
       s.disconnect();
       socketRef.current = null;
     };
   }, [step, session?.id]);
+<<<<<<< HEAD
 
   async function startSession() {
     if (!selectedCourse || !selectedClassroom) return;
@@ -252,18 +340,56 @@ export default function LiveSession() {
     const course = courses.find(c => c.id === parseInt(selectedCourse));
     const classroom = classrooms.find(c => c.id === parseInt(selectedClassroom));
     simulateStudents({ ...session, course_name: course?.name, classroom_name: classroom?.name });
+=======
+  async function startSession() {
+    if (!selectedCourse || !selectedClassroom) return;
+    setLoading(true);
+    try {
+      const s = await api.post('/sessions/start', {
+        course_id: parseInt(selectedCourse),
+        classroom_id: parseInt(selectedClassroom),
+      });
+      setSession(s);
+      setStep('active');
+      setStats({ verified: 0, flagged: 0, rejected: 0, total: s.total_enrolled || 0 });
+    } catch {
+      // Demo mode
+      const course = courses.find(c => c.id === parseInt(selectedCourse));
+      const classroom = classrooms.find(c => c.id === parseInt(selectedClassroom));
+      const demoSession = {
+        id: Date.now(),
+        course_name: course?.name || 'Demo Course',
+        course_code: course?.code || 'CSX01',
+        classroom_name: classroom?.name || 'Demo Room',
+        total_enrolled: course?.enrolled_count || 60,
+        status: 'active',
+      };
+      setSession(demoSession);
+      setStep('active');
+      setStats({ verified: 0, flagged: 0, rejected: 0, total: demoSession.total_enrolled });
+      
+      // Simulate student verifications
+      simulateStudents(demoSession);
+    } finally {
+      setLoading(false);
+    }
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   }
 
   function simulateStudents(sess) {
     const students = [
       'Arjun Patel', 'Meera Reddy', 'Vikram Singh', 'Deepa Nair', 'Rohan Gupta',
       'Sneha Iyer', 'Amit Joshi', 'Kavya Pillai', 'Harsh Mehta', 'Priyanka Das',
+<<<<<<< HEAD
       'Rahul Verma', 'Ananya Kumar',
+=======
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     ];
     let idx = 0;
     const interval = setInterval(() => {
       if (idx >= students.length) { clearInterval(interval); return; }
       const statuses = ['verified', 'verified', 'verified', 'verified', 'verified', 'flagged', 'rejected'];
+<<<<<<< HEAD
       const status   = statuses[Math.floor(Math.random() * statuses.length)];
       const entry = {
         student:      { id: idx + 4, name: students[idx] },
@@ -276,23 +402,55 @@ export default function LiveSession() {
       setAttendanceFeed(prev => [entry, ...prev]);
       setStats(prev => ({ ...prev, [status]: prev[status] + 1 }));
 
+=======
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const student = {
+        student: { id: idx + 4, name: students[idx] },
+        status,
+        qr_verified: status !== 'rejected',
+        ble_verified: status === 'verified',
+        rssi_median: -50 - Math.floor(Math.random() * 25),
+        timestamp: new Date().toISOString(),
+      };
+      setAttendanceFeed(prev => [student, ...prev]);
+      setStats(prev => ({ ...prev, [status]: prev[status] + 1 }));
+      
+      // Occasional anomaly
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       if (status === 'flagged' || Math.random() < 0.15) {
         const types = ['weak_presence', 'cluster_sync', 'duplicate_device'];
         setAnomalyFeed(prev => [{
           flag_type: types[Math.floor(Math.random() * types.length)],
+<<<<<<< HEAD
           severity:  Math.round((0.5 + Math.random() * 0.45) * 100) / 100,
           student:   entry.student,
           details:   { message: 'Anomaly detected during scan' },
+=======
+          severity: Math.round((0.5 + Math.random() * 0.4) * 100) / 100,
+          student: student.student,
+          details: { message: `Anomaly: ${types[0].replace(/_/g, ' ')}` },
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           timestamp: new Date().toISOString(),
         }, ...prev]);
       }
       idx++;
+<<<<<<< HEAD
     }, 2200 + Math.random() * 2500);
+=======
+    }, 2000 + Math.random() * 3000);
+    
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     return () => clearInterval(interval);
   }
 
   async function endSession() {
+<<<<<<< HEAD
     try { await api.post(`/sessions/${session.id}/end`); } catch { /* local mode */ }
+=======
+    try {
+      await api.post(`/sessions/${session.id}/end`);
+    } catch { /* demo mode */ }
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     setStep('setup');
     setSession(null);
     setAttendanceFeed([]);
@@ -300,6 +458,7 @@ export default function LiveSession() {
     navigate('/sessions');
   }
 
+<<<<<<< HEAD
   // ── Starting animation step ───────────────────────────────────────────────
   if (step === 'starting') {
     const course    = courses.find(c => c.id === parseInt(selectedCourse));
@@ -314,6 +473,9 @@ export default function LiveSession() {
   }
 
   // ── Setup step ────────────────────────────────────────────────────────────
+=======
+  // ---- SETUP STEP ----
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   if (step === 'setup') {
     return (
       <div className="animate-fade-in">
@@ -322,7 +484,11 @@ export default function LiveSession() {
           <p>Configure and launch a new attendance verification session</p>
         </div>
 
+<<<<<<< HEAD
         <div style={{ maxWidth: 580 }}>
+=======
+        <div style={{ maxWidth: 560 }}>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           <div className="glass-card" style={{ padding: '32px' }}>
             <div style={{ marginBottom: 24 }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -334,11 +500,17 @@ export default function LiveSession() {
                 onChange={e => setSelectedCourse(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px' }}
               >
+<<<<<<< HEAD
                 <option value="">Choose a course…</option>
                 {courses.map(c => (
                   <option key={c.id} value={c.id}>
                     {c.code} — {c.name} ({c.enrolled_count} students)
                   </option>
+=======
+                <option value="">Choose a course...</option>
+                {courses.map(c => (
+                  <option key={c.id} value={c.id}>{c.code} — {c.name} ({c.enrolled_count} students)</option>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 ))}
               </select>
             </div>
@@ -353,16 +525,26 @@ export default function LiveSession() {
                 onChange={e => setSelectedClassroom(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px' }}
               >
+<<<<<<< HEAD
                 <option value="">Choose a classroom…</option>
                 {classrooms.map(c => (
                   <option key={c.id} value={c.id}>
                     {c.name} — {c.building} ({c.beacon_status === 'active' ? '🟢 Beacon Active' : '🔴 Beacon Inactive'})
                   </option>
+=======
+                <option value="">Choose a classroom...</option>
+                {classrooms.map(c => (
+                  <option key={c.id} value={c.id}>{c.name} — {c.building} ({c.beacon_status === 'active' ? '🟢 Beacon Active' : '🔴 Beacon Inactive'})</option>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 ))}
               </select>
             </div>
 
+<<<<<<< HEAD
             {/* Info box */}
+=======
+            {/* Verification info */}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
             <div style={{
               padding: '16px', borderRadius: 'var(--radius-md)',
               background: 'var(--bg-glass)', border: '1px solid var(--border-accent)',
@@ -385,9 +567,13 @@ export default function LiveSession() {
               onClick={startSession}
               style={{ width: '100%', padding: '14px', fontSize: '1rem' }}
             >
+<<<<<<< HEAD
               {loading
                 ? <><div className="spinner" style={{ width: 18, height: 18 }} /> Preparing…</>
                 : '📡 Start Live Session'}
+=======
+              {loading ? <><div className="spinner" style={{ width: 18, height: 18 }} /> Starting...</> : '📡 Start Live Session'}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
             </button>
           </div>
         </div>
@@ -395,9 +581,15 @@ export default function LiveSession() {
     );
   }
 
+<<<<<<< HEAD
   // ── Active session ────────────────────────────────────────────────────────
   const enrolled   = session?.total_enrolled || stats.total || 60;
   const verifiedPct = enrolled > 0 ? Math.round((stats.verified / enrolled) * 100) : 0;
+=======
+  // ---- ACTIVE SESSION ----
+  const enrolledCount = session?.total_enrolled || stats.total || 60;
+  const verifiedPct = enrolledCount > 0 ? Math.round((stats.verified / enrolledCount) * 100) : 0;
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
   return (
     <div className="animate-fade-in">
@@ -417,6 +609,7 @@ export default function LiveSession() {
 
       {/* Stats bar */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
+<<<<<<< HEAD
         {[
           { label: 'Verified',   value: stats.verified,   color: 'var(--emerald-400)' },
           { label: 'Flagged',    value: stats.flagged,    color: 'var(--flagged)' },
@@ -431,17 +624,45 @@ export default function LiveSession() {
       </div>
 
       {/* Feeds */}
+=======
+        <div className="glass-card" style={{ padding: '16px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--emerald-400)' }}>{stats.verified}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Verified</div>
+        </div>
+        <div className="glass-card" style={{ padding: '16px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--flagged)' }}>{stats.flagged}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Flagged</div>
+        </div>
+        <div className="glass-card" style={{ padding: '16px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--rejected)' }}>{stats.rejected}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Rejected</div>
+        </div>
+        <div className="glass-card" style={{ padding: '16px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--info)' }}>{verifiedPct}%</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Attendance</div>
+        </div>
+      </div>
+
+      {/* Main content: Feeds */}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
         {/* Attendance Feed */}
         <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', maxHeight: 520 }}>
           <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>📋 Attendance Feed</span>
+<<<<<<< HEAD
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>{attendanceFeed.length} scans</span>
+=======
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+              {attendanceFeed.length} scans
+            </span>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           </div>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
             {attendanceFeed.length === 0 ? (
               <div className="empty-state" style={{ padding: 30 }}>
                 <div className="icon">📡</div>
+<<<<<<< HEAD
                 <p style={{ color: 'var(--text-muted)' }}>Waiting for students to scan…</p>
               </div>
             ) : attendanceFeed.map((item, i) => (
@@ -469,6 +690,42 @@ export default function LiveSession() {
                 <span className={`badge badge-${item.status}`} style={{ fontSize: '0.65rem' }}>{item.status}</span>
               </div>
             ))}
+=======
+                <p style={{ color: 'var(--text-muted)' }}>Waiting for students to scan...</p>
+              </div>
+            ) : (
+              attendanceFeed.map((item, i) => (
+                <div key={i} className="animate-slide-right" style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                  background: 'var(--surface-1)', border: '1px solid var(--border-subtle)',
+                  animationDelay: `${i * 0.05}s`,
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 'var(--radius-full)',
+                    background: item.status === 'verified' ? 'var(--verified-bg)' : item.status === 'flagged' ? 'var(--flagged-bg)' : 'var(--rejected-bg)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', flexShrink: 0,
+                  }}>
+                    {item.status === 'verified' ? '✓' : item.status === 'flagged' ? '⚠' : '✕'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {item.student?.name}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: 6 }}>
+                      <span>QR {item.qr_verified ? '✓' : '✕'}</span>
+                      <span>·</span>
+                      <span>BLE {item.ble_verified ? '✓' : '✕'}</span>
+                      {item.rssi_median && <><span>·</span><span>{item.rssi_median} dBm</span></>}
+                    </div>
+                  </div>
+                  <span className={`badge badge-${item.status}`} style={{ fontSize: '0.65rem' }}>
+                    {item.status}
+                  </span>
+                </div>
+              ))
+            )}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           </div>
         </div>
 
@@ -486,6 +743,7 @@ export default function LiveSession() {
                 <div className="icon">✅</div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No anomalies detected</p>
               </div>
+<<<<<<< HEAD
             ) : anomalyFeed.map((flag, i) => (
               <div key={i} className="animate-slide-right" style={{
                 padding: '12px', borderRadius: 'var(--radius-md)',
@@ -504,6 +762,32 @@ export default function LiveSession() {
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{flag.student?.name}</div>
               </div>
             ))}
+=======
+            ) : (
+              anomalyFeed.map((flag, i) => (
+                <div key={i} className="animate-slide-right" style={{
+                  padding: '12px', borderRadius: 'var(--radius-md)',
+                  background: flag.severity > 0.8 ? 'var(--rejected-bg)' : 'var(--flagged-bg)',
+                  border: `1px solid ${flag.severity > 0.8 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{
+                      fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
+                      color: flag.severity > 0.8 ? 'var(--rejected)' : 'var(--flagged)',
+                    }}>
+                      {flag.flag_type?.replace(/_/g, ' ')}
+                    </span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                      {Math.round(flag.severity * 100)}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    {flag.student?.name}
+                  </div>
+                </div>
+              ))
+            )}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
+<<<<<<< HEAD
 import { STUDENTS } from '../data/institutionData';
 
 export default function Students() {
@@ -7,11 +8,20 @@ export default function Students() {
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [sortBy, setSortBy]     = useState('name');
+=======
+
+export default function Students() {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
   useEffect(() => { loadStudents(); }, []);
 
   async function loadStudents() {
     try {
+<<<<<<< HEAD
       const res = await api.get('/dashboard/students');
       setStudents(res.data?.length ? res.data : STUDENTS);
     } catch {
@@ -19,6 +29,13 @@ export default function Students() {
         const res = await api.get('/demo/students');
         setStudents(res.data?.length ? res.data : STUDENTS);
       } catch { setStudents(STUDENTS); }
+=======
+      let data = await api.get('/dashboard/students');
+      if (!data) data = await api.get('/demo/students');
+      setStudents(data || []);
+    } catch {
+      try { setStudents(await api.get('/demo/students') || []); } catch { /* skip */ }
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     } finally {
       setLoading(false);
     }
@@ -31,14 +48,22 @@ export default function Students() {
       s.email?.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
+<<<<<<< HEAD
       if (sortBy === 'name')       return (a.name || '').localeCompare(b.name || '');
       if (sortBy === 'risk')       return (b.avg_risk_score || 0) - (a.avg_risk_score || 0);
       if (sortBy === 'attendance') return (b.attended_sessions || 0) - (a.attended_sessions || 0);
       if (sortBy === 'flags')      return (b.active_flags || 0) - (a.active_flags || 0);
+=======
+      if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+      if (sortBy === 'risk') return (b.avg_risk_score || 0) - (a.avg_risk_score || 0);
+      if (sortBy === 'attendance') return (b.attended_sessions || 0) - (a.attended_sessions || 0);
+      if (sortBy === 'flags') return (b.active_flags || 0) - (a.active_flags || 0);
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       return 0;
     });
 
   if (loading) {
+<<<<<<< HEAD
     return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading students…</p></div>;
   }
 
@@ -51,10 +76,16 @@ export default function Students() {
   }).length;
   const activeFlags   = students.reduce((a, s) => a + (s.active_flags || 0), 0);
 
+=======
+    return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading students...</p></div>;
+  }
+
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   return (
     <div className="animate-fade-in">
       <div className="page-header">
         <h1>Students</h1>
+<<<<<<< HEAD
         <p>Student roster with attendance and integrity risk profiles</p>
       </div>
 
@@ -71,6 +102,9 @@ export default function Students() {
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
+=======
+        <p>Student roster with attendance and risk profiles</p>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       </div>
 
       {/* Controls */}
@@ -79,7 +113,11 @@ export default function Students() {
           <input
             id="student-search"
             type="text"
+<<<<<<< HEAD
             placeholder="Search by name, enrollment, or email…"
+=======
+            placeholder="Search by name, enrollment, or email..."
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', paddingLeft: 36 }}
@@ -89,7 +127,11 @@ export default function Students() {
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
+<<<<<<< HEAD
           style={{ padding: '10px 14px', minWidth: 170 }}
+=======
+          style={{ padding: '10px 14px', minWidth: 160 }}
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
         >
           <option value="name">Sort by Name</option>
           <option value="risk">Sort by Risk Score</option>
@@ -99,10 +141,14 @@ export default function Students() {
       </div>
 
       {/* Student Grid */}
+<<<<<<< HEAD
       <div
         style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}
         className="stagger-children"
       >
+=======
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }} className="stagger-children">
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
         {filtered.map((student, i) => {
           const attendPct = student.total_sessions > 0
             ? Math.round((student.attended_sessions / student.total_sessions) * 100) : 0;
@@ -110,7 +156,13 @@ export default function Students() {
           const riskColor = riskLevel === 'high' ? 'var(--rejected)' : riskLevel === 'medium' ? 'var(--flagged)' : 'var(--verified)';
 
           return (
+<<<<<<< HEAD
             <div key={student.id || i} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+=======
+            <div key={student.id || i} className="glass-card" style={{
+              padding: '20px', display: 'flex', flexDirection: 'column', gap: 14,
+            }}>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
@@ -128,13 +180,18 @@ export default function Students() {
                 </div>
                 {student.active_flags > 0 && (
                   <span className="badge badge-rejected" style={{ fontSize: '0.65rem' }}>
+<<<<<<< HEAD
                     {student.active_flags} flag{student.active_flags > 1 ? 's' : ''}
+=======
+                    {student.active_flags} flags
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                   </span>
                 )}
               </div>
 
               {/* Stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+<<<<<<< HEAD
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Attendance</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: attendPct >= 75 ? 'var(--verified)' : 'var(--rejected)' }}>{attendPct}%</div>
@@ -148,6 +205,32 @@ export default function Students() {
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Flags</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: student.active_flags > 0 ? 'var(--flagged)' : 'var(--text-secondary)' }}>{student.active_flags}</div>
+=======
+                {/* Attendance */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Attendance</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: attendPct >= 75 ? 'var(--verified)' : 'var(--rejected)' }}>
+                    {attendPct}%
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{student.attended_sessions}/{student.total_sessions}</div>
+                </div>
+
+                {/* Risk Score */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Risk</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: riskColor }}>
+                    {Math.round(student.avg_risk_score * 100)}%
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: riskColor, textTransform: 'capitalize' }}>{riskLevel}</div>
+                </div>
+
+                {/* Flags */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Flags</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: student.active_flags > 0 ? 'var(--flagged)' : 'var(--text-secondary)' }}>
+                    {student.active_flags}
+                  </div>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>active</div>
                 </div>
               </div>
@@ -162,10 +245,21 @@ export default function Students() {
                   }} />
                 </div>
                 {attendPct < 80 && attendPct >= 70 && (
+<<<<<<< HEAD
                   <div style={{ fontSize: '0.68rem', color: 'var(--flagged)', marginTop: 4, fontWeight: 600 }}>⚠ Approaching 75% threshold</div>
                 )}
                 {attendPct < 70 && (
                   <div style={{ fontSize: '0.68rem', color: 'var(--rejected)', marginTop: 4, fontWeight: 600 }}>🔴 Below 75% threshold</div>
+=======
+                  <div style={{ fontSize: '0.68rem', color: 'var(--flagged)', marginTop: 4, fontWeight: 600 }}>
+                    ⚠ Approaching 75% threshold
+                  </div>
+                )}
+                {attendPct < 70 && (
+                  <div style={{ fontSize: '0.68rem', color: 'var(--rejected)', marginTop: 4, fontWeight: 600 }}>
+                    🔴 Below 75% threshold
+                  </div>
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 )}
               </div>
             </div>

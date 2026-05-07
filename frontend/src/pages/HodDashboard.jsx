@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import StatsCard from '../components/StatsCard';
 import api from '../api/client';
+<<<<<<< HEAD
 import { HOD_DATA } from '../data/institutionData';
+=======
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
 export default function HodDashboard() {
   const [data, setData] = useState(null);
@@ -12,6 +15,7 @@ export default function HodDashboard() {
 
   async function loadData() {
     try {
+<<<<<<< HEAD
       const res = await api.get('/dashboard/hod');
       setData(res.data || HOD_DATA);
     } catch {
@@ -19,6 +23,13 @@ export default function HodDashboard() {
         const res = await api.get('/demo/hod');
         setData(res.data || HOD_DATA);
       } catch { setData(HOD_DATA); }
+=======
+      let d = await api.get('/dashboard/hod');
+      if (!d) d = await api.get('/demo/hod');
+      setData(d);
+    } catch {
+      try { setData(await api.get('/demo/hod')); } catch { /* skip */ }
+>>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     } finally {
       setLoading(false);
     }
