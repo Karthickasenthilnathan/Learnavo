@@ -23,8 +23,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const res = await authApi.login(email, password);
-      const { token, user: userData } = res.data;
+      const { token, user: userData } = await authApi.login(email, password);
       localStorage.setItem('learnavo_token', token);
       localStorage.setItem('learnavo_user', JSON.stringify(userData));
       setUser(userData);

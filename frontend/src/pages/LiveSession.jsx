@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import api from '../api/client';
+import { CLASSROOMS, COURSES, STUDENTS } from '../data/institutionData';
 
 export default function LiveSession() {
   const [step, setStep] = useState('setup'); // setup | active
-  const [courses, setCourses] = useState([]);
-  const [classrooms, setClassrooms] = useState([]);
+  const [courses, setCourses] = useState(COURSES);
+  const [classrooms, setClassrooms] = useState(CLASSROOMS);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedClassroom, setSelectedClassroom] = useState('');
   const [session, setSession] = useState(null);
@@ -15,10 +16,12 @@ export default function LiveSession() {
   const [anomalyFeed, setAnomalyFeed] = useState([]);
   const [stats, setStats] = useState({ verified: 0, flagged: 0, rejected: 0, total: 0 });
   const [loading, setLoading] = useState(false);
+  const [launching, setLaunching] = useState(false);
 
   // Deduplication: track seen events to avoid double-counting
   const seenEventsRef = useRef(new Set());
   const socketRef = useRef(null);
+  const simulationTimerRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -28,16 +31,26 @@ export default function LiveSession() {
       try {
         let c = await api.get('/dashboard/courses');
         if (!c) c = await api.get('/demo/courses');
-        setCourses(c || []);
+        setCourses(Array.isArray(c) && c.length > 0 ? c : COURSES);
       } catch {
-        try { setCourses(await api.get('/demo/courses') || []); } catch { /* skip */ }
+        try {
+          const c = await api.get('/demo/courses');
+          setCourses(Array.isArray(c) && c.length > 0 ? c : COURSES);
+        } catch {
+          setCourses(COURSES);
+        }
       }
       try {
         let r = await api.get('/dashboard/classrooms');
         if (!r) r = await api.get('/demo/classrooms');
-        setClassrooms(r || []);
+        setClassrooms(Array.isArray(r) && r.length > 0 ? r : CLASSROOMS);
       } catch {
-        try { setClassrooms(await api.get('/demo/classrooms') || []); } catch { /* skip */ }
+        try {
+          const r = await api.get('/demo/classrooms');
+          setClassrooms(Array.isArray(r) && r.length > 0 ? r : CLASSROOMS);
+        } catch {
+          setClassrooms(CLASSROOMS);
+        }
       }
     }
     load();
@@ -104,48 +117,76 @@ export default function LiveSession() {
       socketRef.current = null;
     };
   }, [step, session?.id]);
+
+  useEffect(() => {
+    return () => {
+      if (simulationTimerRef.current) clearInterval(simulationTimerRef.current);
+    };
+  }, []);
+
+  const waitForLaunchAnimation = (startedAt) => new Promise(resolve => {
+    setTimeout(resolve, Math.max(0, 900 - (Date.now() - startedAt)));
+  });
+
+  const buildLocalSession = () => {
+    const course = courses.find(c => Number(c.id) === Number(selectedCourse));
+    const classroom = classrooms.find(c => Number(c.id) === Number(selectedClassroom));
+
+    return {
+      id: Date.now(),
+      course_id: Number(selectedCourse),
+      classroom_id: Number(selectedClassroom),
+      course_name: course?.name || 'Selected Course',
+      course_code: course?.code || 'CSX01',
+      classroom_name: classroom?.name || 'Selected Classroom',
+      total_enrolled: Number(course?.enrolled_count) || 60,
+      status: 'active',
+      started_at: new Date().toISOString(),
+    };
+  };
+
   async function startSession() {
     if (!selectedCourse || !selectedClassroom) return;
+    const launchStartedAt = Date.now();
     setLoading(true);
+    setLaunching(true);
     try {
       const s = await api.post('/sessions/start', {
         course_id: parseInt(selectedCourse),
         classroom_id: parseInt(selectedClassroom),
       });
-      setSession(s);
+      const localDetails = buildLocalSession();
+      await waitForLaunchAnimation(launchStartedAt);
+      const activeSession = { ...localDetails, ...s };
+      setSession(activeSession);
       setStep('active');
-      setStats({ verified: 0, flagged: 0, rejected: 0, total: s.total_enrolled || 0 });
+      setStats({ verified: 0, flagged: 0, rejected: 0, total: activeSession.total_enrolled || 0 });
     } catch {
-      // Demo mode
-      const course = courses.find(c => c.id === parseInt(selectedCourse));
-      const classroom = classrooms.find(c => c.id === parseInt(selectedClassroom));
-      const demoSession = {
-        id: Date.now(),
-        course_name: course?.name || 'Demo Course',
-        course_code: course?.code || 'CSX01',
-        classroom_name: classroom?.name || 'Demo Room',
-        total_enrolled: course?.enrolled_count || 60,
-        status: 'active',
-      };
-      setSession(demoSession);
+      const localSession = buildLocalSession();
+      await waitForLaunchAnimation(launchStartedAt);
+      setSession(localSession);
       setStep('active');
-      setStats({ verified: 0, flagged: 0, rejected: 0, total: demoSession.total_enrolled });
+      setStats({ verified: 0, flagged: 0, rejected: 0, total: localSession.total_enrolled });
       
       // Simulate student verifications
-      simulateStudents(demoSession);
+      simulateStudents();
     } finally {
       setLoading(false);
+      setLaunching(false);
     }
   }
 
-  function simulateStudents(sess) {
-    const students = [
-      'Arjun Patel', 'Meera Reddy', 'Vikram Singh', 'Deepa Nair', 'Rohan Gupta',
-      'Sneha Iyer', 'Amit Joshi', 'Kavya Pillai', 'Harsh Mehta', 'Priyanka Das',
-    ];
+  function simulateStudents() {
+    if (simulationTimerRef.current) clearInterval(simulationTimerRef.current);
+
+    const students = STUDENTS.slice(0, 12).map(student => student.name);
     let idx = 0;
     const interval = setInterval(() => {
-      if (idx >= students.length) { clearInterval(interval); return; }
+      if (idx >= students.length) {
+        clearInterval(interval);
+        simulationTimerRef.current = null;
+        return;
+      }
       const statuses = ['verified', 'verified', 'verified', 'verified', 'verified', 'flagged', 'rejected'];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
       const student = {
@@ -162,16 +203,18 @@ export default function LiveSession() {
       // Occasional anomaly
       if (status === 'flagged' || Math.random() < 0.15) {
         const types = ['weak_presence', 'cluster_sync', 'duplicate_device'];
+        const flagType = types[Math.floor(Math.random() * types.length)];
         setAnomalyFeed(prev => [{
-          flag_type: types[Math.floor(Math.random() * types.length)],
+          flag_type: flagType,
           severity: Math.round((0.5 + Math.random() * 0.4) * 100) / 100,
           student: student.student,
-          details: { message: `Anomaly: ${types[0].replace(/_/g, ' ')}` },
+          details: { message: `Anomaly: ${flagType.replace(/_/g, ' ')}` },
           timestamp: new Date().toISOString(),
         }, ...prev]);
       }
       idx++;
     }, 2000 + Math.random() * 3000);
+    simulationTimerRef.current = interval;
     
     return () => clearInterval(interval);
   }
@@ -179,7 +222,11 @@ export default function LiveSession() {
   async function endSession() {
     try {
       await api.post(`/sessions/${session.id}/end`);
-    } catch { /* demo mode */ }
+    } catch { /* local fallback */ }
+    if (simulationTimerRef.current) {
+      clearInterval(simulationTimerRef.current);
+      simulationTimerRef.current = null;
+    }
     setStep('setup');
     setSession(null);
     setAttendanceFeed([]);
@@ -190,7 +237,14 @@ export default function LiveSession() {
   // ---- SETUP STEP ----
   if (step === 'setup') {
     return (
-      <div className="animate-fade-in">
+      <div className={`animate-fade-in live-session-setup ${launching ? 'is-launching' : ''}`}>
+        <div className="live-launch-bg" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="page-header">
           <h1>Start Live Session</h1>
           <p>Configure and launch a new attendance verification session</p>
@@ -200,7 +254,7 @@ export default function LiveSession() {
           <div className="glass-card" style={{ padding: '32px' }}>
             <div style={{ marginBottom: 24 }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Select Course
+                Choose Course
               </label>
               <select
                 id="select-course"
@@ -217,7 +271,7 @@ export default function LiveSession() {
 
             <div style={{ marginBottom: 28 }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Select Classroom
+                Choose Classroom
               </label>
               <select
                 id="select-classroom"
@@ -253,6 +307,7 @@ export default function LiveSession() {
               className="btn btn-primary"
               disabled={!selectedCourse || !selectedClassroom || loading}
               onClick={startSession}
+              aria-busy={loading}
               style={{ width: '100%', padding: '14px', fontSize: '1rem' }}
             >
               {loading ? <><div className="spinner" style={{ width: 18, height: 18 }} /> Starting...</> : '📡 Start Live Session'}

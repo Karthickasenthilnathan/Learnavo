@@ -155,7 +155,7 @@ export default function Login() {
           </form>
         </div>
 
-        {/* Demo accounts */}
+        {/* Quick access accounts */}
         <div className="glass-card" style={{
           marginTop: 16, padding: '20px 24px',
         }}>
@@ -163,7 +163,7 @@ export default function Login() {
             fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)',
             textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12,
           }}>
-            Quick Demo Login
+            Quick Access
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[

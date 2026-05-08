@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import api from '../api/client';
+import { ANOMALY_FLAGS, RISK_SCORES } from '../data/institutionData';
 
 const FLAG_ICONS = {
   duplicate_device: '📱',
@@ -37,9 +38,12 @@ export default function AnomalyCenter() {
       try { r = await api.get('/anomaly/risk-scores'); } catch {
         try { r = await api.get('/demo/risk-scores'); } catch { /* skip */ }
       }
-      setFlags(f || []);
-      setRiskScores(r || []);
-    } catch { /* skip */ }
+      setFlags(Array.isArray(f) && f.length > 0 ? f : ANOMALY_FLAGS);
+      setRiskScores(Array.isArray(r) && r.length > 0 ? r : RISK_SCORES);
+    } catch {
+      setFlags(ANOMALY_FLAGS);
+      setRiskScores(RISK_SCORES);
+    }
     finally { setLoading(false); }
   }
 

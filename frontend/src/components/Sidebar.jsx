@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+
 const navItems = [
   { to: '/', label: 'Dashboard', icon: '📊', exact: true },
   { to: '/live-session', label: 'Live Session', icon: '📡' },

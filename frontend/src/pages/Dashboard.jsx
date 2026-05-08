@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import StatsCard from '../components/StatsCard';
 import api from '../api/client';
+import { DASHBOARD_STATS } from '../data/institutionData';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -17,9 +18,16 @@ export default function Dashboard() {
     try {
       let data = await api.get('/dashboard/stats');
       if (!data) data = await api.get('/demo/stats');
-      setStats(data);
+      const hasDashboardData = data?.recent_sessions?.length || data?.attendance_trend?.length || data?.total_students > 0;
+      setStats(hasDashboardData ? data : DASHBOARD_STATS);
     } catch {
-      try { setStats(await api.get('/demo/stats')); } catch { /* empty */ }
+      try {
+        const data = await api.get('/demo/stats');
+        const hasDashboardData = data?.recent_sessions?.length || data?.attendance_trend?.length || data?.total_students > 0;
+        setStats(hasDashboardData ? data : DASHBOARD_STATS);
+      } catch {
+        setStats(DASHBOARD_STATS);
+      }
     } finally {
       setLoading(false);
     }

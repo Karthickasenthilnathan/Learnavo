@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { SESSION_HISTORY } from '../data/institutionData';
 
 export default function SessionHistory() {
   const [sessions, setSessions] = useState([]);
@@ -16,9 +17,14 @@ export default function SessionHistory() {
     try {
       let data = await api.get('/sessions');
       if (!data) data = await api.get('/demo/sessions');
-      setSessions(data || []);
+      setSessions(Array.isArray(data) && data.length > 0 ? data : SESSION_HISTORY);
     } catch {
-      try { setSessions(await api.get('/demo/sessions') || []); } catch { /* skip */ }
+      try {
+        const data = await api.get('/demo/sessions');
+        setSessions(Array.isArray(data) && data.length > 0 ? data : SESSION_HISTORY);
+      } catch {
+        setSessions(SESSION_HISTORY);
+      }
     } finally {
       setLoading(false);
     }

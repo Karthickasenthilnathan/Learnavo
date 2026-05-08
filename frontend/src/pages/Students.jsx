@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/client';
+import { STUDENTS } from '../data/institutionData';
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -13,9 +14,14 @@ export default function Students() {
     try {
       let data = await api.get('/dashboard/students');
       if (!data) data = await api.get('/demo/students');
-      setStudents(data || []);
+      setStudents(Array.isArray(data) && data.length > 0 ? data : STUDENTS);
     } catch {
-      try { setStudents(await api.get('/demo/students') || []); } catch { /* skip */ }
+      try {
+        const data = await api.get('/demo/students');
+        setStudents(Array.isArray(data) && data.length > 0 ? data : STUDENTS);
+      } catch {
+        setStudents(STUDENTS);
+      }
     } finally {
       setLoading(false);
     }

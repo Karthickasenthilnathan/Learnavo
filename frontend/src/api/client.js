@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 
 // Response interceptor — handle 401
 api.interceptors.response.use(
-  (response) => response,
+  (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("learnavo_token");

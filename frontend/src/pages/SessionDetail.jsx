@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import api from '../api/client';
+import { SESSION_HISTORY } from '../data/institutionData';
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -12,12 +13,17 @@ export default function SessionDetail() {
   useEffect(() => { loadSession(); }, [id]);
 
   async function loadSession() {
+    const localSession = SESSION_HISTORY.find(s => String(s.id) === String(id));
     try {
       let data = await api.get(`/sessions/${id}`);
       if (!data) data = await api.get(`/demo/session/${id}`);
-      setSession(data);
+      setSession(data || localSession || null);
     } catch {
-      try { setSession(await api.get(`/demo/session/${id}`)); } catch { /* skip */ }
+      try {
+        setSession(await api.get(`/demo/session/${id}`));
+      } catch {
+        setSession(localSession || null);
+      }
     } finally {
       setLoading(false);
     }
