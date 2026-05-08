@@ -2,10 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import api from '../api/client';
-<<<<<<< HEAD
-import { SESSION_HISTORY } from '../data/institutionData';
-=======
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -17,25 +13,11 @@ export default function SessionDetail() {
 
   async function loadSession() {
     try {
-<<<<<<< HEAD
-      const res = await api.get(`/sessions/${id}`);
-      setSession(res.data);
-    } catch {
-      try {
-        const res = await api.get(`/demo/session/${id}`);
-        setSession(res.data);
-      } catch {
-        // Fall back to built-in session data
-        const fallback = SESSION_HISTORY.find(s => String(s.id) === String(id)) || SESSION_HISTORY[0];
-        setSession(fallback || null);
-      }
-=======
       let data = await api.get(`/sessions/${id}`);
       if (!data) data = await api.get(`/demo/session/${id}`);
       setSession(data);
     } catch {
       try { setSession(await api.get(`/demo/session/${id}`)); } catch { /* skip */ }
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     } finally {
       setLoading(false);
     }

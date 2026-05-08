@@ -1,31 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import api from '../api/client';
-<<<<<<< HEAD
-import { ANOMALY_FLAGS, RISK_SCORES } from '../data/institutionData';
-
-const FLAG_ICONS = {
-  duplicate_device: '📱',
-  token_reuse:      '🔄',
-  cluster_sync:     '👥',
-  weak_presence:    '📶',
-  chronic_proxy:    '🎭',
-};
-const FLAG_COLORS = {
-  duplicate_device: '#ef4444',
-  token_reuse:      '#f59e0b',
-  cluster_sync:     '#3b82f6',
-  weak_presence:    '#8b5cf6',
-  chronic_proxy:    '#ef4444',
-};
-
-export default function AnomalyCenter() {
-  const [flags, setFlags]           = useState([]);
-  const [riskScores, setRiskScores] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [filter, setFilter]         = useState('all');
-  const [tab, setTab]               = useState('flags');
-=======
 
 const FLAG_ICONS = {
   duplicate_device: '📱',
@@ -49,45 +24,10 @@ export default function AnomalyCenter() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [tab, setTab] = useState('flags');
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-<<<<<<< HEAD
-    let f = null, r = null;
-    try {
-      const res = await api.get('/anomaly/flags');
-      f = res.data?.length ? res.data : null;
-    } catch {
-      try {
-        const res = await api.get('/demo/anomaly-flags');
-        f = res.data?.length ? res.data : null;
-      } catch { /* use fallback */ }
-    }
-    try {
-      const res = await api.get('/anomaly/risk-scores');
-      r = res.data?.length ? res.data : null;
-    } catch {
-      try {
-        const res = await api.get('/demo/risk-scores');
-        r = res.data?.length ? res.data : null;
-      } catch { /* use fallback */ }
-    }
-    setFlags(f || ANOMALY_FLAGS);
-    setRiskScores(r || RISK_SCORES);
-    setLoading(false);
-  }
-
-  const filteredFlags =
-    filter === 'all'      ? flags :
-    filter === 'active'   ? flags.filter(f => !f.resolved) :
-    filter === 'resolved' ? flags.filter(f =>  f.resolved) :
-    flags.filter(f => f.flag_type === filter);
-
-  const typeBreakdown = {};
-  flags.forEach(f => { typeBreakdown[f.flag_type] = (typeBreakdown[f.flag_type] || 0) + 1; });
-=======
     try {
       let f = null, r = null;
       // Try real endpoints first, then fall back to demo
@@ -113,7 +53,6 @@ export default function AnomalyCenter() {
   flags.forEach(f => {
     typeBreakdown[f.flag_type] = (typeBreakdown[f.flag_type] || 0) + 1;
   });
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   const pieData = Object.entries(typeBreakdown).map(([type, count]) => ({
     name: type.replace(/_/g, ' '),
     value: count,
@@ -121,39 +60,18 @@ export default function AnomalyCenter() {
   }));
 
   if (loading) {
-<<<<<<< HEAD
-    return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading anomalies…</p></div>;
-=======
     return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading anomalies...</p></div>;
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   }
 
   return (
     <div className="animate-fade-in">
       <div className="page-header">
         <h1>Anomaly Center</h1>
-<<<<<<< HEAD
-        <p>Real-time anomaly detection, flags, and integrity risk analysis</p>
-=======
         <p>Real-time anomaly detection, flags, and risk analysis</p>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       </div>
 
       {/* Summary stats */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 24 }}>
-<<<<<<< HEAD
-        {[
-          { label: 'Active Flags',   value: flags.filter(f => !f.resolved).length,    color: 'var(--rejected)' },
-          { label: 'Resolved',       value: flags.filter(f =>  f.resolved).length,     color: 'var(--verified)' },
-          { label: 'Avg Severity',   value: flags.length > 0 ? `${Math.round(flags.reduce((s, f) => s + f.severity, 0) / flags.length * 100)}%` : '—', color: 'var(--flagged)' },
-          { label: 'Risk Profiles',  value: riskScores.length,                          color: 'var(--info)' },
-        ].map(s => (
-          <div key={s.label} className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{s.label}</div>
-          </div>
-        ))}
-=======
         <div className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--rejected)' }}>{flags.filter(f => !f.resolved).length}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Active Flags</div>
@@ -172,18 +90,13 @@ export default function AnomalyCenter() {
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--info)' }}>{riskScores.length}</div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Risk Profiles</div>
         </div>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         {['flags', 'risk-scores'].map(t => (
           <button key={t} className={`btn ${tab === t ? 'btn-primary' : 'btn-secondary'}`}
-<<<<<<< HEAD
-            onClick={() => setTab(t)} style={{ fontSize: '0.82rem' }}>
-=======
             onClick={() => setTab(t)} style={{ fontSize: '0.82rem', textTransform: 'capitalize' }}>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
             {t === 'flags' ? '🚨 Anomaly Flags' : '📊 Risk Scores'}
           </button>
         ))}
@@ -193,63 +106,30 @@ export default function AnomalyCenter() {
         <div className="content-grid" style={{ gridTemplateColumns: '1fr 320px' }}>
           {/* Flags list */}
           <div className="glass-card" style={{ padding: '20px' }}>
-<<<<<<< HEAD
-            {/* Filter pills */}
-=======
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               {['all', 'active', 'resolved', ...Object.keys(typeBreakdown)].map(f => (
                 <button key={f} className={`btn ${filter === f ? 'btn-primary' : 'btn-ghost'}`}
                   onClick={() => setFilter(f)}
                   style={{ fontSize: '0.72rem', padding: '6px 12px', textTransform: 'capitalize' }}>
                   {f.replace(/_/g, ' ')}
-<<<<<<< HEAD
-                  {f !== 'all' && f !== 'active' && f !== 'resolved' && typeBreakdown[f] > 0 && (
-                    <span style={{
-                      marginLeft: 6, background: 'rgba(255,255,255,0.12)',
-                      borderRadius: '9999px', padding: '1px 6px', fontSize: '0.65rem',
-                    }}>{typeBreakdown[f]}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {filteredFlags.length === 0 && (
-                <div className="empty-state">
-                  <div className="icon">✅</div>
-                  <h3>No flags</h3>
-                  <p>No anomalies match the current filter</p>
-                </div>
-              )}
-=======
                 </button>
               ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
               {filteredFlags.map((flag, i) => (
                 <div key={flag.id || i} style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '14px 16px', borderRadius: 'var(--radius-md)',
                   background: 'var(--surface-1)', border: '1px solid var(--border-subtle)',
-<<<<<<< HEAD
-                  opacity: flag.resolved ? 0.6 : 1, transition: 'all var(--transition-fast)',
-=======
                   opacity: flag.resolved ? 0.6 : 1,
                   transition: 'all var(--transition-fast)',
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-accent)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
                 >
                   <div style={{
                     width: 40, height: 40, borderRadius: 'var(--radius-md)',
-<<<<<<< HEAD
-                    background: `${FLAG_COLORS[flag.flag_type] || '#64748b'}18`,
-=======
                     background: `${FLAG_COLORS[flag.flag_type]}15`,
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0,
                   }}>
                     {FLAG_ICONS[flag.flag_type] || '⚠'}
@@ -260,15 +140,8 @@ export default function AnomalyCenter() {
                     </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
                       {flag.student_name} · {flag.enrollment}
-<<<<<<< HEAD
-                      {flag.course_code && <span style={{ marginLeft: 6, color: 'var(--text-muted)' }}>· {flag.course_code}</span>}
                     </div>
                   </div>
-                  {/* Severity ring */}
-=======
-                    </div>
-                  </div>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                   <div style={{
                     width: 44, height: 44, borderRadius: 'var(--radius-full)',
                     border: `3px solid ${flag.severity > 0.8 ? 'var(--rejected)' : flag.severity > 0.5 ? 'var(--flagged)' : 'var(--info)'}`,
@@ -308,24 +181,6 @@ export default function AnomalyCenter() {
                 </div>
               ))}
             </div>
-<<<<<<< HEAD
-
-            {/* High severity alert */}
-            {flags.filter(f => !f.resolved && f.severity > 0.85).length > 0 && (
-              <div style={{
-                marginTop: 20, padding: '12px 14px', borderRadius: 'var(--radius-md)',
-                background: 'var(--rejected-bg)', border: '1px solid rgba(239,68,68,0.3)',
-              }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--rejected)', marginBottom: 4 }}>
-                  🔴 {flags.filter(f => !f.resolved && f.severity > 0.85).length} critical flag{flags.filter(f => !f.resolved && f.severity > 0.85).length > 1 ? 's' : ''} require attention
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  Severity above 85% — escalate for review
-                </div>
-              </div>
-            )}
-=======
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
           </div>
         </div>
       ) : (
@@ -338,13 +193,8 @@ export default function AnomalyCenter() {
                 <th>Enrollment</th>
                 <th>Course</th>
                 <th>Risk Score</th>
-<<<<<<< HEAD
-                <th>RSSI Consistency</th>
-                <th>Scan Timing</th>
-=======
                 <th>RSSI</th>
                 <th>Timing</th>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 <th>History</th>
                 <th>Overall</th>
               </tr>

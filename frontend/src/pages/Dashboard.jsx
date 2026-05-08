@@ -1,36 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import StatsCard from '../components/StatsCard';
-import api from '../api/client';
-import { DASHBOARD_STATS } from '../data/institutionData';
-=======
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import StatsCard from '../components/StatsCard';
 import api from '../api/client';
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-  useEffect(() => { loadStats(); }, []);
-
-  async function loadStats() {
-    try {
-      const res = await api.get('/dashboard/stats');
-      setStats(res.data);
-    } catch {
-      try {
-        const res = await api.get('/demo/stats');
-        setStats(res.data);
-      } catch {
-        setStats(DASHBOARD_STATS);
-      }
-=======
   useEffect(() => {
     loadStats();
   }, []);
@@ -42,7 +20,6 @@ export default function Dashboard() {
       setStats(data);
     } catch {
       try { setStats(await api.get('/demo/stats')); } catch { /* empty */ }
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     } finally {
       setLoading(false);
     }
@@ -67,15 +44,6 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="stats-grid stagger-children">
-<<<<<<< HEAD
-        <StatsCard icon="📅" label="Today's Sessions"  value={stats?.today_sessions  ?? 0} subtext="sessions scheduled"      color="blue"   />
-        <StatsCard icon="👥" label="Total Students"    value={stats?.total_students   ?? 0} subtext="enrolled across courses"  color="emerald"/>
-        <StatsCard icon="📈" label="Avg Attendance"    value={`${stats?.avg_attendance ?? 0}%`} subtext="vs last month"       trend={3.2}    color="emerald"/>
-        <StatsCard icon="🚨" label="Active Flags"      value={stats?.active_flags     ?? 0} subtext="unresolved anomalies"    color={(stats?.active_flags ?? 0) > 5 ? 'red' : 'amber'} />
-      </div>
-
-      {/* Charts + Sessions */}
-=======
         <StatsCard icon="📅" label="Today's Sessions" value={stats?.today_sessions ?? 0} subtext="sessions scheduled" color="blue" />
         <StatsCard icon="👥" label="Total Students" value={stats?.total_students ?? 0} subtext="enrolled across courses" color="emerald" />
         <StatsCard icon="📈" label="Avg Attendance" value={`${stats?.avg_attendance ?? 0}%`} subtext="vs last month" trend={3.2} color="emerald" />
@@ -83,7 +51,6 @@ export default function Dashboard() {
       </div>
 
       {/* Charts and sessions */}
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       <div className="content-grid">
         {/* Attendance Trend */}
         <div className="glass-card" style={{ padding: '24px' }}>
@@ -94,23 +61,12 @@ export default function Dashboard() {
               <AreaChart data={stats?.attendance_trend || []}>
                 <defs>
                   <linearGradient id="attendGrad" x1="0" y1="0" x2="0" y2="1">
-<<<<<<< HEAD
-                    <stop offset="0%"   stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0}   />
-=======
                     <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
                     <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.06)" />
                 <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={d => d?.slice(5)} axisLine={false} tickLine={false} />
-<<<<<<< HEAD
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[60, 100]} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
-                <Tooltip
-                  contentStyle={{ background: '#111438', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 10, fontSize: '0.8rem', color: '#f1f5f9' }}
-                  formatter={val => [`${val}%`, 'Attendance']}
-=======
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[50, 100]} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
                 <Tooltip
                   contentStyle={{
@@ -118,7 +74,6 @@ export default function Dashboard() {
                     borderRadius: 10, fontSize: '0.8rem', color: '#f1f5f9',
                   }}
                   formatter={(val) => [`${val}%`, 'Attendance']}
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 />
                 <Area type="monotone" dataKey="avg_pct" stroke="#10b981" strokeWidth={2} fill="url(#attendGrad)" dot={false} activeDot={{ r: 5, fill: '#10b981', stroke: '#050816', strokeWidth: 2 }} />
               </AreaChart>
@@ -148,10 +103,6 @@ export default function Dashboard() {
                   cursor: 'pointer', transition: 'all var(--transition-fast)',
                   display: 'flex', alignItems: 'center', gap: 14,
                 }}
-<<<<<<< HEAD
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-accent)'; e.currentTarget.style.transform = 'translateX(4px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)';  e.currentTarget.style.transform = 'translateX(0)';   }}
-=======
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'var(--border-accent)';
                   e.currentTarget.style.transform = 'translateX(4px)';
@@ -160,17 +111,12 @@ export default function Dashboard() {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   e.currentTarget.style.transform = 'translateX(0)';
                 }}
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
               >
                 <div style={{
                   width: 38, height: 38, borderRadius: 'var(--radius-md)',
                   background: session.status === 'active' ? 'var(--info-bg)' : 'var(--verified-bg)',
-<<<<<<< HEAD
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0,
-=======
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
                   flexShrink: 0,
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 }}>
                   {session.status === 'active' ? '📡' : '✅'}
                 </div>
@@ -179,13 +125,9 @@ export default function Dashboard() {
                     {session.course_name}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: 8 }}>
-<<<<<<< HEAD
-                    <span>{session.course_code}</span><span>·</span><span>{session.classroom_name}</span>
-=======
                     <span>{session.course_code}</span>
                     <span>·</span>
                     <span>{session.classroom_name}</span>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>

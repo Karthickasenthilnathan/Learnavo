@@ -1,27 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
-<<<<<<< HEAD
-import { SESSION_HISTORY } from '../data/institutionData';
-
-export default function SessionHistory() {
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [filter, setFilter]     = useState('all');
-  const navigate = useNavigate();
-
-  useEffect(() => { loadSessions(); }, []);
-
-  async function loadSessions() {
-    try {
-      const res = await api.get('/sessions');
-      setSessions(res.data?.length ? res.data : SESSION_HISTORY);
-    } catch {
-      try {
-        const res = await api.get('/demo/sessions');
-        setSessions(res.data?.length ? res.data : SESSION_HISTORY);
-      } catch { setSessions(SESSION_HISTORY); }
-=======
 
 export default function SessionHistory() {
   const [sessions, setSessions] = useState([]);
@@ -40,7 +19,6 @@ export default function SessionHistory() {
       setSessions(data || []);
     } catch {
       try { setSessions(await api.get('/demo/sessions') || []); } catch { /* skip */ }
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
     } finally {
       setLoading(false);
     }
@@ -50,26 +28,17 @@ export default function SessionHistory() {
 
   const formatDate = (d) => {
     if (!d) return '—';
-<<<<<<< HEAD
-    return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-=======
     const date = new Date(d);
     return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   const formatTime = (d) => {
     if (!d) return '';
     return new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
   };
 
   if (loading) {
-<<<<<<< HEAD
-    return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading sessions…</p></div>;
-=======
     return <div className="loading-page"><div className="spinner" /><p style={{ color: 'var(--text-muted)' }}>Loading sessions...</p></div>;
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
   }
 
   return (
@@ -93,28 +62,6 @@ export default function SessionHistory() {
         </div>
       </div>
 
-<<<<<<< HEAD
-      {/* Summary row */}
-      <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
-        {[
-          { label: 'Total Sessions', value: sessions.length,                                        color: 'var(--info)' },
-          { label: 'Completed',      value: sessions.filter(s => s.status === 'completed').length,  color: 'var(--verified)' },
-          { label: 'Avg Rate',       value: (() => {
-              const total = sessions.reduce((a, s) => a + (s.total_enrolled || 0), 0);
-              const verified = sessions.reduce((a, s) => a + (s.total_verified || 0), 0);
-              return total > 0 ? `${Math.round((verified / total) * 100)}%` : '—';
-            })(),                                                                                    color: 'var(--emerald-400)' },
-          { label: 'Total Flags',    value: sessions.reduce((a, s) => a + (s.total_flagged || 0), 0), color: 'var(--flagged)' },
-        ].map(s => (
-          <div key={s.label} className="glass-card" style={{ flex: 1, padding: '16px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-=======
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
       <div className="glass-card" style={{ overflow: 'hidden' }}>
         <table className="data-table">
           <thead>
@@ -151,13 +98,9 @@ export default function SessionHistory() {
                   <td style={{ color: s.total_rejected > 0 ? 'var(--rejected)' : 'var(--text-muted)', fontWeight: 600 }}>{s.total_rejected}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-<<<<<<< HEAD
-                      <div style={{ width: 52, height: 5, borderRadius: 3, background: 'var(--surface-2)', overflow: 'hidden' }}>
-=======
                       <div style={{
                         width: 50, height: 5, borderRadius: 3, background: 'var(--surface-2)', overflow: 'hidden',
                       }}>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                         <div style={{
                           width: `${rate}%`, height: '100%', borderRadius: 3,
                           background: rate > 80 ? 'var(--verified)' : rate > 60 ? 'var(--flagged)' : 'var(--rejected)',
@@ -166,11 +109,7 @@ export default function SessionHistory() {
                       <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{rate}%</span>
                     </div>
                   </td>
-<<<<<<< HEAD
-                  <td><span className={`badge badge-${s.status === 'active' ? 'active' : 'completed'}`}>{s.status}</span></td>
-=======
                   <td><span className={`badge badge-${s.status}`}>{s.status}</span></td>
->>>>>>> 2d483a76bd31b2ce20cc1709ce14ffc9c1d29b94
                 </tr>
               );
             })}
